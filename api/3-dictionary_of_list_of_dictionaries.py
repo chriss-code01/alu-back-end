@@ -1,4 +1,3 @@
-
 #!/usr/bin/python3
 """Export all employees' TODO tasks to a JSON file."""
 
@@ -45,4 +44,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
