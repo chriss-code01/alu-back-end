@@ -1,59 +1,39 @@
 #!/usr/bin/python3
-"""Export an employee's TODO tasks to a JSON file."""
-
+"""Export an employee's TODO list data to a JSON file."""
 import json
 import sys
-from urllib.parse import urlencode
-from urllib.request import urlopen
+import urllib.request
 
 
-def fetch_data(url):
-    """Fetch JSON data from a URL."""
-    with urlopen(url) as response:
+def fetch_json(url):
+    """Fetch a URL and return the parsed JSON."""
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
-def main():
-    """Write an employee's TODO tasks to a JSON file."""
-    if len(sys.argv) != 2:
-        return
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        sys.exit(1)
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        return
-
+    employee_id = sys.argv[1]
     base_url = "https://jsonplaceholder.typicode.com"
 
-    try:
-        user = fetch_data(
-            "{}/users/{}".format(base_url, employee_id)
-        )
-        query = urlencode({"userId": employee_id})
-        todos = fetch_data(
-            "{}/todos?{}".format(base_url, query)
-        )
-    except Exception as error:
-        print("Error fetching data: {}".format(error), file=sys.stderr)
-        return
-
-    if not isinstance(user, dict) or not user:
-        return
+    user = fetch_json("{}/users/{}".format(base_url, employee_id))
+    todos = fetch_json("{}/todos?userId={}".format(base_url, employee_id))
 
     username = user.get("username")
-    tasks = []
 
-    for task in todos:
-        tasks.append({
-            "task": task.get("title"),
-            "completed": task.get("completed"),
-            "username": username
-        })
+    data = {
+        employee_id: [
+            {
+                "task": task.get("title"),
+                "completed": task.get("completed"),
+                "username": username,
+            }
+            for task in todos
+        ]
+    }
 
-    with open("{}.json".format(employee_id), "w") as jsonfile:
-        json.dump({str(employee_id): tasks}, jsonfile)
-
- 
-if __name__ == "__main__":
-    main()
-
+    with open("{}.json".format(employee_id), "w") as f:
+        json.dump(data, f)
