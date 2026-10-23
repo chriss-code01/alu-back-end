@@ -4,6 +4,7 @@
 
 import csv
 import json
+import os
 import sys
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -27,7 +28,10 @@ def main():
     params = urlencode({"userId": user_id})
     todos = fetch_data("{}/todos?{}".format(base_url, params))
 
-    filename = "{}.csv".format(user_id)
+    filename = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "{}.csv".format(user_id)
+    )
 
     with open(filename, "w", newline="", encoding="utf-8") as csv_file:
         writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
