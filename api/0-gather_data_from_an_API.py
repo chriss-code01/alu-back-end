@@ -1,11 +1,10 @@
-
 #!/usr/bin/python3
-"""Gather an employee's TODO list progress from an API."""
+"""Retrieve and display an employee's completed TODO tasks."""
 
 import json
 import sys
-from urllib.request import urlopen
 from urllib.parse import urlencode
+from urllib.request import urlopen
 
 
 def fetch_data(url):
@@ -15,47 +14,32 @@ def fetch_data(url):
 
 
 def main():
-    """Print an employee's completed tasks and progress."""
+    """Display an employee's completed tasks."""
     if len(sys.argv) != 2:
         return
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        return
-
+    user_id = sys.argv[1]
     base_url = "https://jsonplaceholder.typicode.com"
 
-    try:
-        user = fetch_data(
-            "{}/users/{}".format(base_url, employee_id)
-        )
-        query = urlencode({"userId": employee_id})
-        todos = fetch_data(
-            "{}/todos?{}".format(base_url, query)
-        )
-    except Exception as error:
-        print("Error fetching data: {}".format(error), file=sys.stderr)
-        return
+    user = fetch_data("{}/users/{}".format(base_url, user_id))
+    params = urlencode({"userId": user_id})
+    todos = fetch_data("{}/todos?{}".format(base_url, params))
 
-    if not isinstance(user, dict) or not user:
-        return
-
-    employee_name = user.get("name")
-    done_tasks = [
-        task for task in todos if task.get("completed") is True
+    completed_tasks = [
+        task for task in todos if task.get("completed")
     ]
 
     print(
         "Employee {} is done with tasks({}/{}):".format(
-            employee_name, len(done_tasks), len(todos)
+            user.get("name"),
+            len(completed_tasks),
+            len(todos)
         )
     )
 
-    for task in done_tasks:
-        print("\t {}".format(task.get("title")))
+    for task in completed_tasks:
+        print("\t{}".format(task.get("title")))
 
 
 if __name__ == "__main__":
     main()
-
